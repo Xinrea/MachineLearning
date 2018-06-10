@@ -7,7 +7,6 @@ import tkinter.filedialog
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
-#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 run_full = False
 
@@ -17,34 +16,40 @@ global count,right
 count = 0
 right = 0
 global fig,ax
-
+#只完成了K=3的情况
+#runfull为true的时候，不显示每次测试的图片，只输出测试后的准确率；runfull为false的时候，进入演示模式，点按钮进行单次测试
 def begin_test():
     global count,fig,ax,right
     if(run_full):
         for c in range(len(atest_label)):
             distance = []
             for k in atrain:
+                #将测试对象atest[count]与样例集中的每个样例计算距离，此处为欧几里得距离（norm函数式求范数，默认为二范数）
                 distance.append(np.linalg.norm(atest[count]-k))
             result_index = []
             result = []
             distance_backup = distance.copy()
             for j in  range(0,3):
+                #寻找距离list中的最小值，找到对应的index并记录，然后将距离修改为极大值，以此找到第二小的值
+                #因K=3，找到三个即可
                 index = distance.index(min(distance))
                 result_index.append(index)
                 result.append(atrain_label[index])
                 distance[index] = float('inf')
             prediction = 0
+            #找到三个值中出现次数最多的值，如果最多出现次数为1，则退化为K=1，找到距离中最小的一个
             if(cl.Counter(result).most_common(1)[0][1]==1):
                 prediction = atrain_label[distance_backup.index(min(distance_backup))]
             else:
                 prediction = cl.Counter(result).most_common(1)[0][0]
+            #判断预测是否正确
             if(prediction == atest_label[count]):
                 right=right+1
             count = count + 1
             p = '%.3f' % (float(right)/count)
             print(p)
         return
-    else:  
+    else:  #演示模式基本与上面相同，只是使用matplotlib进行绘图，并且每次只处理一个
         begin_button['text']='下一个'
         distance = []
         for k in atrain:
@@ -90,7 +95,7 @@ def begin_test():
         plt.show()
     
     
-
+#数据的导入
 def import_train():
     global atrain
     train_filename = tk.filedialog.askopenfilename(initialdir='./')
